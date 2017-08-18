@@ -1,6 +1,8 @@
 # GlideWebpSupport
 Glide4.0 Support Webp , use fresco-webp
 
+Glide的gif加载性能比fresco要好，但是Glide并不支持动态的webp，取舍后决定用fresco的webp库扩展Glide，让Glide也支持动态webp。
+
 使用方法：在application.onCreate里面添加下面两行，注册webp的解码器
 
 // webp支持
