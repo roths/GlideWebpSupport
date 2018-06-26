@@ -17,6 +17,7 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ImageView imageView = (ImageView) findViewById(R.id.webp);
+        ImageView imageView2 = (ImageView) findViewById(R.id.webp2);
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -32,8 +33,12 @@ public class MainActivity extends FragmentActivity {
                 new RequestOptions()
                         .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
         Glide.with(this)
-                .load("file:///android_asset/sticker1.webp")
+                .load("file:///android_asset/small.webp")
                 .apply(options).transition(new DrawableTransitionOptions().crossFade(200))
                 .into(imageView);
+        Glide.with(this)
+                .load("file:///android_asset/sticker1.webp")
+                .apply(options).transition(new DrawableTransitionOptions().crossFade(200))
+                .into(imageView2);
     }
 }

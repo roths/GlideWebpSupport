@@ -1,13 +1,14 @@
 package com.luoqiaoyou.webp.webpglide.webp;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.bumptech.glide.gifdecoder.GifDecoder;
 import com.bumptech.glide.gifdecoder.GifHeader;
 import com.facebook.animated.webp.WebPFrame;
 import com.facebook.animated.webp.WebPImage;
+import com.facebook.imagepipeline.animated.base.AnimatedDrawableFrameInfo;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -24,14 +25,20 @@ public class WebpDecoder implements GifDecoder {
     private int[] mFrameDurations;
     private int downsampledWidth;
     private int downsampledHeight;
+    private boolean[] mKeyFrame;
+    private int mSampleSize;
+    // 缓存上一帧，用于非关键帧
+    private Bitmap mCacheBmp;
 
 
     public WebpDecoder(GifDecoder.BitmapProvider provider, WebPImage webPImage, int sampleSize) {
         mProvider = provider;
         mWebPImage = webPImage;
         mFrameDurations = webPImage.getFrameDurations();
+        mKeyFrame = new boolean[mFrameDurations.length];
         downsampledWidth = webPImage.getWidth() / sampleSize;
         downsampledHeight = webPImage.getHeight() / sampleSize;
+        mSampleSize = sampleSize;
     }
 
     @Override
@@ -118,9 +125,55 @@ public class WebpDecoder implements GifDecoder {
     @Override
     public Bitmap getNextFrame() {
         Bitmap result = mProvider.obtain(downsampledWidth, downsampledHeight, Bitmap.Config.ARGB_8888);
-        WebPFrame frame = mWebPImage.getFrame(getCurrentFrameIndex());
-        frame.renderFrame(downsampledWidth, downsampledHeight, result);
+        int currentIndex = getCurrentFrameIndex();
+        WebPFrame currentFrame = mWebPImage.getFrame(currentIndex);
+
+        // render key frame
+        if (isKeyFrame(currentIndex)) {
+            mKeyFrame[currentIndex] = true;
+            currentFrame.renderFrame(downsampledWidth, downsampledHeight, result);
+
+            mCacheBmp = result;
+        } else {
+            int frameW = currentFrame.getWidth() / mSampleSize;
+            int frameH = currentFrame.getHeight() / mSampleSize;
+            int offX = currentFrame.getXOffset() / mSampleSize;
+            int offY = currentFrame.getYOffset() / mSampleSize;
+
+            Canvas canvas = new Canvas(result);
+            canvas.drawBitmap(mCacheBmp, 0, 0, null);
+
+            Bitmap frameBmp = mProvider.obtain(frameW, frameH, Bitmap.Config.ARGB_8888);
+            currentFrame.renderFrame(frameW, frameH, frameBmp);
+            canvas.drawBitmap(frameBmp, offX, offY, null);
+
+            mProvider.release(frameBmp);
+            mCacheBmp = result;
+        }
+        currentFrame.dispose();
         return result;
+    }
+
+    private boolean isKeyFrame(int index) {
+        if (index == 0) {
+            return true;
+        }
+
+        AnimatedDrawableFrameInfo curFrameInfo = mWebPImage.getFrameInfo(index);
+        AnimatedDrawableFrameInfo prevFrameInfo = mWebPImage.getFrameInfo(index - 1);
+        if (curFrameInfo.blendOperation == AnimatedDrawableFrameInfo.BlendOperation.NO_BLEND
+                && isFullFrame(curFrameInfo)) {
+            return true;
+        } else {
+            return prevFrameInfo.disposalMethod == AnimatedDrawableFrameInfo.DisposalMethod.DISPOSE_TO_BACKGROUND
+                    && isFullFrame(prevFrameInfo);
+        }
+    }
+
+    private boolean isFullFrame(AnimatedDrawableFrameInfo info) {
+        return info.yOffset == 0 && info.xOffset == 0
+                && mWebPImage.getHeight() == info.width
+                && mWebPImage.getWidth() == info.height;
     }
 
     @Override
