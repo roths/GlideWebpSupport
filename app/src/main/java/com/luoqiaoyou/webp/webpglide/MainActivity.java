@@ -2,6 +2,7 @@ package com.luoqiaoyou.webp.webpglide;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
@@ -16,6 +17,17 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ImageView imageView = (ImageView) findViewById(R.id.webp);
+        findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Glide.get(MainActivity.this).clearDiskCache();
+                    }
+                }).start();
+            }
+        });
         RequestOptions options =
                 new RequestOptions()
                         .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);

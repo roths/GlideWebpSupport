@@ -1,6 +1,8 @@
 package com.luoqiaoyou.webp.webpglide.webp;
 
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.bumptech.glide.gifdecoder.GifDecoder;
 import com.bumptech.glide.gifdecoder.GifHeader;
@@ -152,4 +154,7 @@ public class WebpDecoder implements GifDecoder {
         return 0;
     }
 
+    @Override
+    public void setDefaultBitmapConfig(@NonNull Bitmap.Config format) {
+    }
 }

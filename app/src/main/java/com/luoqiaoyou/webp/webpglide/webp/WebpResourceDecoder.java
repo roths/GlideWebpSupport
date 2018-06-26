@@ -3,6 +3,7 @@ package com.luoqiaoyou.webp.webpglide.webp;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.ImageHeaderParser;
@@ -17,11 +18,14 @@ import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
 import com.bumptech.glide.load.resource.UnitTransformation;
 import com.bumptech.glide.load.resource.drawable.DrawableResource;
 import com.bumptech.glide.load.resource.gif.GifBitmapProvider;
+import com.bumptech.glide.load.resource.gif.GifOptions;
 import com.facebook.animated.webp.WebPImage;
+import com.facebook.soloader.SoLoader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -30,6 +34,7 @@ import java.util.List;
 
 public class WebpResourceDecoder implements ResourceDecoder<InputStream, WebpDrawable> {
 
+    public final String TAG = "WebpResourceDecoder";
     private final List<ImageHeaderParser> mParsers;
     private final ArrayPool mByteArrayPool;
     private final Context mContext;
@@ -41,6 +46,12 @@ public class WebpResourceDecoder implements ResourceDecoder<InputStream, WebpDra
     public WebpResourceDecoder(Context context) {
         this(context, Glide.get(context).getRegistry().getImageHeaderParsers(), Glide.get(context).getArrayPool(),
                 Glide.get(context).getBitmapPool());
+        // if not init Soloader, will get error when decode
+        try {
+            SoLoader.init(context, 0);
+        } catch (IOException e) {
+            Log.v(TAG, "Failed to init SoLoader", e);
+        }
     }
 
     public WebpResourceDecoder(Context context, List<ImageHeaderParser> parsers, ArrayPool byteArrayPool, BitmapPool bitmapPool) {

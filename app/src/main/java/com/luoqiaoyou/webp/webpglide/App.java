@@ -19,8 +19,10 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
 
-        // webp支持
+        // webp support
         ResourceDecoder decoder = new WebpResourceDecoder(this);
-        Glide.get(this).getRegistry().append(InputStream.class, Drawable.class, decoder);
+        // use prepend() avoid intercept by default decoder
+        Glide.get(this).getRegistry()
+                .prepend(InputStream.class, Drawable.class, decoder);
     }
 }
