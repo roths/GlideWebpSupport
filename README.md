@@ -1,4 +1,6 @@
 # GlideWebpSupport
+该项目不再维护，推荐使用[GlideWebpDecoder](https://github.com/zjupure/GlideWebpDecoder)
+#
 Glide 4.7.1 Support Webp , use fresco-webp 1.9.0
 
 add this code into Application.onCreate
